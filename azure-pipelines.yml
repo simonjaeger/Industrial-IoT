@@ -2,13 +2,12 @@ pr:
   autoCancel: true
   branches:
     include:
-    - '*'
+    - feature/central
 trigger:
   batch: true
   branches:
     include:
-    - master
-    - release/*
+    - feature/central
 stages:
 - stage: build
   displayName: 'Build and Test Code'

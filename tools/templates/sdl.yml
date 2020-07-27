@@ -4,6 +4,7 @@
 jobs:
 - job: sdl
   displayName: SDL Tasks
+  condition: and(succeeded(), ne(variables['SkipSdl'], true))
   pool:
     vmImage: 'windows-2019'
     demands:

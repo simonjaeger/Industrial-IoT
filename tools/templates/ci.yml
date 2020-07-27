@@ -52,6 +52,7 @@ jobs:
       arguments: '--configuration Debug'
 - job: testprep
   displayName: Prepare Test Jobs
+  condition: and(succeeded(), ne(variables['SkipTest'], true))
   pool:
     vmImage: 'windows-2019'
   variables:
@@ -70,6 +71,7 @@ jobs:
 - job: testall
   displayName: Run Tests for
   dependsOn: testprep
+  condition: and(succeeded(), ne(variables['SkipTest'], true))
   strategy:
     matrix: $[dependencies.testprep.outputs['testmatrix.jobMatrix'] ]
   variables:

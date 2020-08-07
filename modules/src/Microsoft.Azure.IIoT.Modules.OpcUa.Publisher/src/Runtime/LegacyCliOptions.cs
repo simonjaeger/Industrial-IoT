@@ -156,6 +156,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "me|messageencoding=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[LegacyCliConfigKeys.MessageEncoding] = m.ToString() },
+                    { "be|bypassedge=", "Bypass the edge hub while sending data to IoT Hub",
+                        (bool b) => this[LegacyCliConfigKeys.BypassEdgeHub] = b.ToString() },
+                    { "cs|iothubconnectionstring=", "IoT Device connection String to IoT Hub",
+                        s => this[LegacyCliConfigKeys.IoTHubConnectionString] = s },
 
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },

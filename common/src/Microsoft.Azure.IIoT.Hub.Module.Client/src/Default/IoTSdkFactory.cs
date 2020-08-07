@@ -58,7 +58,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
 
             try {
-                if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+                if (config.BypassEdgeHub && !string.IsNullOrEmpty(config.IoTHubConnectionString)) {
+                    _cs = IotHubConnectionStringBuilder.Create(config.IoTHubConnectionString);
+                    deviceId = _cs.DeviceId;
+                    moduleId = _cs.ModuleId;
+                    ehubHost = _cs.GatewayHostName ?? ehubHost;
+                } else if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
                     _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
 
                     if (string.IsNullOrEmpty(_cs.SharedAccessKey)) {
@@ -73,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     deviceId = _cs.DeviceId;
                     moduleId = _cs.ModuleId;
                     ehubHost = _cs.GatewayHostName ?? ehubHost;
-                }
+                } 
             }
             catch (Exception e) {
                 _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");

@@ -21,6 +21,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         bool BypassCertVerification { get; }
 
         /// <summary>
+        /// false (default) use Edge Hub
+        /// true use IoT Hub directly
+        /// </summary>
+        bool BypassEdgeHub { get; }
+        
+        /// <summary>
+        /// IoT Device connection string
+        /// </summary>
+        string IoTHubConnectionString { get; }
+
+        /// <summary>
         /// Enable metrics collection
         /// </summary>
         bool EnableMetrics { get; }

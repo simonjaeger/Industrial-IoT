@@ -74,6 +74,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
+        /// <inheritdoc/>
+        public bool BypassEdgeHub => false;
+
+        /// <inheritdoc/>
+        public string IoTHubConnectionString => string.Empty;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>

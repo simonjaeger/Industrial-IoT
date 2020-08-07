@@ -73,6 +73,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int OperationTimeout => _opc.OperationTimeout;
         /// <inheritdoc/>
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
+        /// <inheritdoc/>
+        public bool BypassEdgeHub => _module.BypassEdgeHub;
+        /// <inheritdoc/>
+        public string IoTHubConnectionString => _module.IoTHubConnectionString;
 
         /// <summary>
         /// Configuration constructor

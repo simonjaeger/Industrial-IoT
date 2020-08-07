@@ -103,6 +103,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public bool EnableMetrics => false;
 
             private readonly DeviceModel _device;
+            /// <inheritdoc/>
+            public bool BypassEdgeHub => false;
+
+            /// <inheritdoc/>
+            public string IoTHubConnectionString => string.Empty;
         }
 
         /// <summary>

@@ -274,6 +274,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             public bool EnableMetrics => false;
 
             private readonly DeviceModel _device;
+            /// <inheritdoc/>
+            public bool BypassEdgeHub => false;
+
+            /// <inheritdoc/>
+            public string IoTHubConnectionString => string.Empty;
         }
 
         /// <inheritdoc/>

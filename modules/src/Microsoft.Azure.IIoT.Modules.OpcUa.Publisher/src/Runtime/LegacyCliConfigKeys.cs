@@ -103,6 +103,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MaxOutgressMessages = "MaxOutgressMessages";
 
         /// <summary>
+        /// Key for the flag to bypass edge hub
+        /// </summary>
+        public const string BypassEdgeHub = "BypassEdgeHub";
+
+        /// <summary>
+        /// Key for the connection string (as IoT Device to access IoT Hub directive)
+        /// </summary>
+        public const string IoTHubConnectionString = "IoTHubConnectionString";
+
+        /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>
         public const string ScaleTestCount = "ScaleTestCount";

@@ -244,6 +244,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             public bool EnableMetrics { get; }
             /// <inheritdoc/>
             public TransportOption Transport { get; }
+            /// <inheritdoc/>
+            public bool BypassEdgeHub => false;
+
+            /// <inheritdoc/>
+            public string IoTHubConnectionString => string.Empty;
 
             /// <summary>
             /// Create runner

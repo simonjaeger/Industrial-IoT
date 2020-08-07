@@ -41,6 +41,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public bool EnableMetrics { get; }
             /// <inheritdoc/>
             public TransportOption Transport { get; }
+            /// <inheritdoc/>
+            public bool BypassEdgeHub { get; }
+            /// <inheritdoc/>
+            public string IoTHubConnectionString { get; }
 
             /// <summary>
             /// Create clone
@@ -51,6 +55,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 EdgeHubConnectionString = GetEdgeHubConnectionString(config, connectionString);
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
+                BypassEdgeHub = config.BypassEdgeHub;
+                IoTHubConnectionString = config.IoTHubConnectionString;
             }
 
             /// <summary>

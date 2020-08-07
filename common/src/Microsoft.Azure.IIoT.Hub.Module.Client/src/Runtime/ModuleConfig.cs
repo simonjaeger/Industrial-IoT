@@ -22,6 +22,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         public const string kBypassCertVerificationKey = "BypassCertVerification";
         public const string kTransportKey = "Transport";
         public const string kEnableMetricsKey = "EnableMetrics";
+        public const string kBypassEdgeHub = "BypassEdgeHub";
+        public const string kIoTHubConnectionString = "IoTHubConnectionString";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>Hub connection string</summary>
@@ -36,6 +38,10 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// <summary>Transports to use</summary>
         public TransportOption Transport => (TransportOption)Enum.Parse(typeof(TransportOption),
             GetStringOrDefault(kTransportKey, () => nameof(TransportOption.MqttOverTcp)), true);
+        /// <summary>flag to bypass edge hub and directly send to iot hub</summary>
+        public bool BypassEdgeHub => GetBoolOrDefault(kBypassEdgeHub, () => false);
+        /// <summary>IoT Device connection string to iot hub</summary>
+        public string IoTHubConnectionString => GetStringOrDefault(kIoTHubConnectionString, () => string.Empty);
 
         /// <summary>
         /// Create configuration

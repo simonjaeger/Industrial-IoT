@@ -73,6 +73,11 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
         public int OperationTimeout => _opc.OperationTimeout;
         /// <inheritdoc/>
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
+        /// <inheritdoc/>
+        public bool BypassEdgeHub => false;
+
+        /// <inheritdoc/>
+        public string IoTHubConnectionString => string.Empty;
 
         /// <summary>
         /// Configuration constructor

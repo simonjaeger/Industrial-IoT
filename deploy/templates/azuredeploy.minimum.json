@@ -289,7 +289,7 @@
             "comments": "KeyVault for secrets and certificate store.",
             "type": "Microsoft.KeyVault/vaults",
             "name": "[parameters('keyVaultName')]",
-            "apiVersion": "2016-10-01",
+            "apiVersion": "2018-02-14",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "properties": {

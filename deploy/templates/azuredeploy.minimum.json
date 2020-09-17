@@ -301,6 +301,7 @@
                     "name": "[parameters('keyVaultSkuName')]",
                     "family": "A"
                 },
+                "accessPolicies": [],
                 "enableRbacAuthorization": "true"
             },
             "dependsOn": [

@@ -80,6 +80,18 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
 
+  - task: AzurePowerShell@5
+    displayName: "Deploy IIoT Edge VM and simulation servers"
+    name: deployedgevm
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
+      scriptArguments: >
+        -keyVaultUrl "$(PCS_KEYVAULT_URL)"
+        -resourceGroupName "$(ResourceGroupName)"
+
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
   dependsOn: deploy

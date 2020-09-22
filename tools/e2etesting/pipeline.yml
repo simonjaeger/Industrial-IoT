@@ -29,8 +29,6 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
       scriptArguments: >
-        -keyVaultName "$(KeyVaultName)"
-        -resourceGroupName "$(ResourceGroupName)"
         -branchName "${variables['Build.SourceBranch']}"
 
   - task: PowerShell@2

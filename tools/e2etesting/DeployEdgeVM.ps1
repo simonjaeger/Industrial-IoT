@@ -4,9 +4,12 @@ Param(
     $branchName
 )
 
+$branchName = $branchName.Replace('refs/heads/', '')
+Write-Host "Branch name: $($branchName)"
+
 $templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates") 
 
-# Get IoTHub
+# Get IoT Hub
 $iotHub = Get-AzIotHub -ResourceGroupName $resourceGroupName
 $ioTHubConnString = (Get-AzIotHubConnectionString -ResourceGroupName $resourceGroupName -KeyName iothubowner -Name $iotHub.Name).PrimaryConnectionString
 

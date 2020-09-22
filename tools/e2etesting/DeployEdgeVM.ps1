@@ -27,7 +27,14 @@ if ($prereqsDeployment.ProvisioningState -ne "Succeeded") {
 
 Write-Host "Created MSI $($prereqsDeployment.Parameters.managedIdentityName.Value) with resource id $($prereqsDeployment.Outputs.managedIdentityResourceId.Value)"
 
-# Deploy edge and simulation vms
+# Configure the keyvault
+# Allow the MSI to access keyvault
+Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $prereqsDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list,set,delete -PermissionsToKeys get,list,sign,unwrapKey,wrapKey,create -PermissionsToCertificates get,list,update,create,import
+
+# Allow the keyvault to be used in ARM deployments
+Set-AzKeyVaultAccessPolicy -VaultName -EnabledForTemplateDeployment
+
+# Deploy edge and simulation virtual machines
 $templateParameters = @{
     "keyVaultName" = $keyVaultName
 	"managedIdentityResourceId" = $prereqsDeployment.Outputs.managedIdentityResourceId.Value

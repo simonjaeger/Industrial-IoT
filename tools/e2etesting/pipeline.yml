@@ -20,17 +20,6 @@ jobs:
   - name: 'IAIStorageAccountContainerName'
     value: 'binaries'
   steps:
-  - task: AzurePowerShell@5
-    displayName: "Deploy IIoT edge and sim VMs"
-    name: deployedgevm
-    inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
-      scriptArguments: >
-        -branchName "$(Build.SourceBranch)"
-
   - task: PowerShell@2
     displayName: "Download IAI binaries"
     inputs:
@@ -100,6 +89,19 @@ jobs:
         -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
+
+  - task: AzurePowerShell@5
+    displayName: "Deploy IIoT edge and sim VMs"
+    name: deployedgevm
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
+      scriptArguments: >
+        -keyVaultName "$(KeyVaultName)"
+        -resourceGroupName "$(ResourceGroupName)"
+        -branchName "$(Build.SourceBranch)"
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"

@@ -29,7 +29,8 @@ Write-Host "Created MSI $($prereqsDeployment.Parameters.managedIdentityName.Valu
 
 # Configure the keyvault
 # Allow the MSI to access keyvault
-Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $prereqsDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list,set,delete -PermissionsToKeys get,list,sign,unwrapKey,wrapKey,create -PermissionsToCertificates get,list,update,create,import
+# https://github.com/Azure/azure-powershell/issues/10029 for why -BypassObjectIdValidation is needed
+Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $prereqsDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list,set,delete -PermissionsToKeys get,list,sign,unwrapKey,wrapKey,create -PermissionsToCertificates get,list,update,create,import -BypassObjectIdValidation
 Write-Host "Key vault set to allow MSI full access"
 
 # Allow the keyvault to be used in ARM deployments
@@ -51,4 +52,5 @@ $simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resour
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
 }
+
 Write-Host "Deployed simulation"

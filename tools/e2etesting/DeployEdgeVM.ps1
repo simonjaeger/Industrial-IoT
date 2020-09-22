@@ -43,6 +43,7 @@ $templateParameters = @{
 	"managedIdentityResourceId" = $prereqsDeployment.Outputs.managedIdentityResourceId.Value
     "numberOfLinuxGateways" = 1
     "edgePassword" = [System.Web.Security.Membership]::GeneratePassword(15, 5)
+    "branchName" = "dansil/deploy-iiot-edge"
 }
 
 $simulationTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json")

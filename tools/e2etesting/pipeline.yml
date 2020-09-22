@@ -164,4 +164,4 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Delete-AzResourceGroup -Force
+        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force

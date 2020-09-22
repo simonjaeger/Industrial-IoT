@@ -13,7 +13,6 @@ $ioTHubConnString = (Get-AzIotHubConnectionString -ResourceGroupName $resourceGr
 
 # Create DPS
 Write-Host "Creating device provisioning service"
-$deviceProvisioningTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.deviceprovisioning.json")
 
 $templateParameters = @{
     "dpsIotHubHostName" = $iotHub.Properties.HostName
@@ -23,19 +22,17 @@ $templateParameters = @{
     "branchName" = $branchName
 }
 
-$dpsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $deviceProvisioningTemplate -TemplateParameterObject $templateParameters
+$dpsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.deviceprovisioning.json") -TemplateParameterObject $templateParameters
 if ($dpsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($dpsDeployment.ProvisioningState)." -ErrorAction Stop
 }
 
 Write-Host "Created DPS"
-# --------------
 
 # Create MSI for edge
 Write-Host "Creating MSI for edge VM identity"
-$edgePrereqsTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.edgesimulationprereqs.json")
 
-$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $edgePrereqsTemplate
+$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.managedidentity.json")
 if ($prereqsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($prereqsDeployment.ProvisioningState)." -ErrorAction Stop
 }
@@ -61,10 +58,9 @@ $templateParameters = @{
     "branchName" = $branchName
 }
 
-$simulationTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json")
 Write-Host "Preparing to deploy azuredeploy.simulation.json"
 
-$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $simulationTemplate -TemplateParameterObject $templateParameters
+$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json") -TemplateParameterObject $templateParameters
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
 }

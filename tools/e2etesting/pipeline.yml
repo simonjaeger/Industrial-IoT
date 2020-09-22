@@ -29,7 +29,7 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
       scriptArguments: >
-        -branchName "${variables['Build.SourceBranch']}"
+        -branchName "$('Build.SourceBranch')"
 
   - task: PowerShell@2
     displayName: "Download IAI binaries"

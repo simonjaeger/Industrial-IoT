@@ -101,6 +101,7 @@ jobs:
       scriptArguments: >
         -keyVaultName "$(KeyVaultName)"
         -resourceGroupName "$(ResourceGroupName)"
+        -branchName "$(variables['Build.SourceBranch'])"
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"

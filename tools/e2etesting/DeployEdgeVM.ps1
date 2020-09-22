@@ -45,7 +45,7 @@ $templateParameters = @{
 $simulationTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json")
 Write-Host "Preparing to deploy azuredeploy.simulation.json"
 
-$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $simulationTemplate -TemplateParameterObject $templateParameters -DeploymentDebugLogLevel All
+$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $simulationTemplate -TemplateParameterObject $templateParameters
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
 }

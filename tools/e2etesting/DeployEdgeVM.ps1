@@ -22,7 +22,8 @@ $templateParameters = @{
     "branchName" = $branchName
 }
 
-$dpsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.deviceprovisioning.json") -TemplateParameterObject $templateParameters
+$template = [System.IO.Path]::Combine($templateDir, "azuredeploy.deviceprovisioning.json")
+$dpsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template -TemplateParameterObject $templateParameters
 if ($dpsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($dpsDeployment.ProvisioningState)." -ErrorAction Stop
 }
@@ -32,7 +33,8 @@ Write-Host "Created DPS"
 # Create MSI for edge
 Write-Host "Creating MSI for edge VM identity"
 
-$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.managedidentity.json")
+$template = [System.IO.Path]::Combine($templateDir, "azuredeploy.managedidentity.json")
+$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template
 if ($prereqsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($prereqsDeployment.ProvisioningState)." -ErrorAction Stop
 }
@@ -60,7 +62,8 @@ $templateParameters = @{
 
 Write-Host "Preparing to deploy azuredeploy.simulation.json"
 
-$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json") -TemplateParameterObject $templateParameters
+$template = [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json")
+$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template -TemplateParameterObject $templateParameters
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
 }

@@ -30,9 +30,11 @@ Write-Host "Created MSI $($prereqsDeployment.Parameters.managedIdentityName.Valu
 # Configure the keyvault
 # Allow the MSI to access keyvault
 Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $prereqsDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list,set,delete -PermissionsToKeys get,list,sign,unwrapKey,wrapKey,create -PermissionsToCertificates get,list,update,create,import
+Write-Host "Key vault set to allow MSI full access"
 
 # Allow the keyvault to be used in ARM deployments
-Set-AzKeyVaultAccessPolicy -VaultName -EnabledForTemplateDeployment
+Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -EnabledForTemplateDeployment
+Write-Host "Key vault configured to be used in ARM deployments"
 
 # Deploy edge and simulation virtual machines
 $templateParameters = @{

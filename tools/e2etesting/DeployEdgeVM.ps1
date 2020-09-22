@@ -25,11 +25,10 @@ if ($prereqsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($prereqsDeployment.ProvisioningState)." -ErrorAction Stop
 }
 
-Write-Host "Created MSI $($msi.Parameters.managedIdentityName.Value) with resource id $($prereqsDeployment.Outputs.managedIdentityResourceId.Value)"
+Write-Host "Created MSI $($prereqsDeployment.Parameters.managedIdentityName.Value) with resource id $($prereqsDeployment.Outputs.managedIdentityResourceId.Value)"
 
 # Deploy edge and simulation vms
 $templateParameters = @{
-    # secrets pcs-dps-idscope and pcs-dps-connstring are retrieved from this keyvault
     "keyVaultName" = $keyVaultName
 	"managedIdentityResourceId" = $prereqsDeployment.Outputs.managedIdentityResourceId.Value
     "numberOfLinuxGateways" = 1
@@ -37,7 +36,9 @@ $templateParameters = @{
 }
 
 $simulationTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.simulation.json")
-$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $simulationTemplate -TemplateParameterObject $templateParameters
+Write-Host "Preparing to deploy azuredeploy.simulation.json"
+
+$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $simulationTemplate -TemplateParameterObject $templateParameters -DeploymentDebugLogLevel All
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
 }

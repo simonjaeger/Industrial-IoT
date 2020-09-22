@@ -1110,7 +1110,7 @@ Function Test-All-Deployment-Options() {
 $ErrorActionPreference = "Stop"
 $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 $script:interactive = !$script:context
-. ".\helpers\password-generator.ps1"
+. ".\util\password-generator.ps1"
 
 $script:requiredProviders = @(
     "microsoft.devices",

@@ -5,26 +5,37 @@ Param(
 )
 
 $branchName = $branchName.Replace('refs/heads/', '')
-Write-Host "Branch name: $($branchName)"
-
 $templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates") 
 
 # Get IoT Hub
 $iotHub = Get-AzIotHub -ResourceGroupName $resourceGroupName
 $ioTHubConnString = (Get-AzIotHubConnectionString -ResourceGroupName $resourceGroupName -KeyName iothubowner -Name $iotHub.Name).PrimaryConnectionString
 
-# Create MSI for edge and DPS
-Write-Host "Creating MSI for edge VM identity and creating DPS"
-$edgePrereqsTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.edgesimulationprereqs.json")
+# Create DPS
+Write-Host "Creating device provisioning service"
+$deviceProvisioningTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.deviceprovisioning.json")
 
 $templateParameters = @{
     "dpsIotHubHostName" = $iotHub.Properties.HostName
     "dpsIotHubConnectionString" = $ioTHubConnString
     "dpsIotHubLocation" = $iotHub.Location
     "keyVaultName" = $keyVaultName
+    "branchName" = $branchName
 }
 
-$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $edgePrereqsTemplate -TemplateParameterObject $templateParameters
+$dpsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $deviceProvisioningTemplate -TemplateParameterObject $templateParameters
+if ($dpsDeployment.ProvisioningState -ne "Succeeded") {
+    Write-Error "Deployment $($dpsDeployment.ProvisioningState)." -ErrorAction Stop
+}
+
+Write-Host "Created DPS"
+# --------------
+
+# Create MSI for edge
+Write-Host "Creating MSI for edge VM identity"
+$edgePrereqsTemplate = [System.IO.Path]::Combine($templateDir, "azuredeploy.edgesimulationprereqs.json")
+
+$prereqsDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $edgePrereqsTemplate
 if ($prereqsDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($prereqsDeployment.ProvisioningState)." -ErrorAction Stop
 }

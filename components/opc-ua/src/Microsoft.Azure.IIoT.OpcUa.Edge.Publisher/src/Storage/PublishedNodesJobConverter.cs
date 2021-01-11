@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile,
             LegacyCliModel legacyCliModel) {
             var sw = Stopwatch.StartNew();
-            _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
+            _logger.Information("Reading published nodes file ({elapsed}", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
                 publishedNodesFile);
             _logger.Information(

@@ -62,10 +62,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
-            _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
-            _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Created += _fileSystemWatcher_Created;
+            _fileSystemWatcher.Renamed += _fileSystemWatcher_Renamed;
             _fileSystemWatcher.EnableRaisingEvents = true;
-            RefreshJobFromFile();
+            RefreshJobFromFile(false);
         }
 
         /// <summary>
@@ -127,8 +127,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            RefreshJobFromFile();
+            _logger.Information("File {publishedNodesFile} change trigger ...", _legacyCliModel.PublishedNodesFile);
+            RefreshJobFromFile(false);
         }
+
+        private void _fileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
+            _logger.Information("File {publishedNodesFile} created trigger ...", _legacyCliModel.PublishedNodesFile);
+            RefreshJobFromFile(false);
+        }
+
+        private void _fileSystemWatcher_Renamed(object sender, FileSystemEventArgs e) {
+            _logger.Information("File {publishedNodesFile} Renamed trigger ...", _legacyCliModel.PublishedNodesFile);
+            RefreshJobFromFile(true);
+        }
+
 
         private static string GetChecksum(string file) {
             using (var stream = File.OpenRead(file)) {
@@ -138,18 +150,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        private void RefreshJobFromFile() {
+        private void RefreshJobFromFile(bool renamed) {
             var retryCount = 3;
             while (true) {
                 try {
                     _lock.Wait();
-                    var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
+                    var currentFileHash = !renamed ? GetChecksum(_legacyCliModel.PublishedNodesFile) : null;
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
-                    if (currentFileHash != _lastKnownFileHash) {
+                    if (!renamed && currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
                         _lastKnownFileHash = currentFileHash;
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                            
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             foreach (var job in jobs) {
                                 var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
@@ -206,6 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     break;
                 }
                 finally {
+                    _logger.Information("File {publishedNodesFile} has changed, reloading finalized", _legacyCliModel.PublishedNodesFile);
                     _lock.Release();
                 }
             }

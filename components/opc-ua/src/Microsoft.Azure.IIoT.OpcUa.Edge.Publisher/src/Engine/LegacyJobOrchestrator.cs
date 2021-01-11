@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
     using System.Linq;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -199,6 +200,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
                         break;
                     }
+                }
+                catch (SerializerException sx) {
+                    _logger.Error(sx, "SerializerException while loading job from file.");
+                    break;
                 }
                 finally {
                     _lock.Release();

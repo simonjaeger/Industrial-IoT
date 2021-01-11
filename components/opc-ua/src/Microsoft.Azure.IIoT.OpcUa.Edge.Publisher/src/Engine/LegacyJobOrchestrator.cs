@@ -55,8 +55,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
             _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
 
+            _lock = new SemaphoreSlim(1, 1);
+
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
+            _fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
@@ -138,12 +141,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var retryCount = 3;
             while (true) {
                 try {
+                    _lock.Wait();
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
                         _lastKnownFileHash = currentFileHash;
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
+                            
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             foreach (var job in jobs) {
                                 var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
@@ -195,6 +200,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         break;
                     }
                 }
+                finally {
+                    _lock.Release();
+                }
             }
         }
 
@@ -210,5 +218,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private bool _updated;
+        private readonly SemaphoreSlim _lock;
     }
 }

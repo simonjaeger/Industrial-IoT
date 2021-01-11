@@ -44,15 +44,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Read monitored item job from reader
         /// </summary>
-        /// <param name="publishedNodesFile"></param>
+        /// <param name="content"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile,
+        public IEnumerable<WriterGroupJobModel> Read(string content,
             LegacyCliModel legacyCliModel) {
             var sw = Stopwatch.StartNew();
-            _logger.Information("Reading published nodes file ({elapsed})", sw.Elapsed);
-            var content = publishedNodesFile.ReadToEnd();
-            _logger.Information("Content : {content}", content);
+            _logger.Information("Deserializing published nodes file ({elapsed})", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(content);
             _logger.Information(
                 "Read {count} items from published nodes file in {elapsed}",

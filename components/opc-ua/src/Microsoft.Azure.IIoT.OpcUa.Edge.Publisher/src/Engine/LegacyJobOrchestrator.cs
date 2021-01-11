@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Concurrent;
     using System.Linq;
     using Microsoft.Azure.IIoT.Exceptions;
+    using System.Text;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -140,13 +141,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             RefreshJobFromFile(true);
         }
 
-
-        private static string GetChecksum(string file) {
-            using (var stream = File.OpenRead(file)) {
-                var sha = new SHA256Managed();
-                var checksum = sha.ComputeHash(stream);
-                return BitConverter.ToString(checksum).Replace("-", string.Empty);
+        private static string GetChecksum(string content) {
+            if (String.IsNullOrEmpty(content)) {
+                return null;
             }
+            var sha = new SHA256Managed();
+            var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
+            return BitConverter.ToString(checksum).Replace("-", string.Empty);
         }
 
         private void RefreshJobFromFile(bool renamed) {
@@ -154,39 +155,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             while (true) {
                 try {
                     _lock.Wait();
-                    var currentFileHash = !renamed ? GetChecksum(_legacyCliModel.PublishedNodesFile) : null;
+                    //  Task.Delay(1000).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
-                    if (!renamed && currentFileHash != _lastKnownFileHash) {
-                        _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, reloading...",
-                            _legacyCliModel.PublishedNodesFile,
-                            currentFileHash);
-                        _lastKnownFileHash = currentFileHash;
-                        using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                            var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
-                            foreach (var job in jobs) {
-                                var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
-                                job.WriterGroup.DataSetWriters.ForEach(d => {
-                                    d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
-                                    d.DataSet.ExtensionFields["PublisherId"] = jobId;
-                                    d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
-                                });
-                                var endpoints = string.Join(", ",job.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url));
-                                _logger.Information($"Job {jobId} loaded. DataSetWriters endpoints: {endpoints}");
-                                var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
-
-                                availableJobs.Enqueue(
-                                    new JobProcessingInstructionModel {
-                                        Job = new JobInfoModel {
-                                            Demands = new List<DemandModel>(),
-                                            Id = jobId,
-                                            JobConfiguration = serializedJob,
-                                            JobConfigurationType = jobConfigurationType,
-                                            LifetimeData = new JobLifetimeDataModel(),
-                                            Name = jobId,
-                                            RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
-                                        },
-                                        ProcessMode = ProcessMode.Active
+                    using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
+                        var content = reader.ReadToEnd();
+                        var currentFileHash = GetChecksum(content);
+                        if (currentFileHash != _lastKnownFileHash) {
+                            _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, reloading...",
+                                _legacyCliModel.PublishedNodesFile,
+                                currentFileHash);
+                            _lastKnownFileHash = currentFileHash;
+                            _logger.Information("Content : {content}", content);
+                            if (!String.IsNullOrEmpty(content)) {
+                                var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);
+                                foreach (var job in jobs) {
+                                    var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
+                                    job.WriterGroup.DataSetWriters.ForEach(d => {
+                                        d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
+                                        d.DataSet.ExtensionFields["PublisherId"] = jobId;
+                                        d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
                                     });
+                                    var endpoints = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url));
+                                    _logger.Information($"Job {jobId} loaded. DataSetWriters endpoints: {endpoints}");
+                                    var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
+
+                                    availableJobs.Enqueue(
+                                        new JobProcessingInstructionModel {
+                                            Job = new JobInfoModel {
+                                                Demands = new List<DemandModel>(),
+                                                Id = jobId,
+                                                JobConfiguration = serializedJob,
+                                                JobConfigurationType = jobConfigurationType,
+                                                LifetimeData = new JobLifetimeDataModel(),
+                                                Name = jobId,
+                                                RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
+                                            },
+                                            ProcessMode = ProcessMode.Active
+                                        });
+                                }
                             }
                         }
                         _agentConfig.MaxWorkers = availableJobs.Count;

@@ -60,7 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
-            _fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Created += _fileSystemWatcher_Created;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Renamed;
@@ -158,7 +157,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var currentFileHash = !renamed ? GetChecksum(_legacyCliModel.PublishedNodesFile) : null;
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     if (!renamed && currentFileHash != _lastKnownFileHash) {
-                        _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
+                        _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, reloading...",
+                            _legacyCliModel.PublishedNodesFile,
+                            currentFileHash);
                         _lastKnownFileHash = currentFileHash;
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);

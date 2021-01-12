@@ -151,11 +151,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void RefreshJobFromFile(bool renamed) {
-            var retryCount = 3;
+            var retryCount = 0;
             while (true) {
                 try {
                     _lock.Wait();
-                    //  Task.Delay(1000).GetAwaiter().GetResult();
+                    Task.Delay((int)Math.Pow(500, retryCount+1)).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                         var content = reader.ReadToEnd();
@@ -212,8 +212,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     break;
                 }
                 catch (IOException ex) {
-                    retryCount--;
-                    if (retryCount > 0) {
+                    retryCount++;
+                    if (retryCount < 4) {
                         _logger.Debug("Error while loading job from file, retrying...");
                     }
                     else {

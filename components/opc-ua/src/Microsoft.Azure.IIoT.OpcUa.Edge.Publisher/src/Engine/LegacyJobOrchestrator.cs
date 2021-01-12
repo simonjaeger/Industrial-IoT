@@ -161,11 +161,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         var content = reader.ReadToEnd();
                         var currentFileHash = GetChecksum(content);
                         if (currentFileHash != _lastKnownFileHash) {
-                            _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, reloading...",
+                            _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, old hash {oldHash}; current lock count: {currentCount} reloading...",
                                 _legacyCliModel.PublishedNodesFile,
-                                currentFileHash);
+                                currentFileHash,
+                                _lastKnownFileHash,
+                                _lock.CurrentCount);
                             _lastKnownFileHash = currentFileHash;
-                            _logger.Information("Content : {content}", content);
+                            _logger.Information("Content: {content}", content);
                             if (!String.IsNullOrEmpty(content)) {
                                 var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);
                                 foreach (var job in jobs) {
@@ -194,18 +196,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         });
                                 }
                             }
+                            _agentConfig.MaxWorkers = availableJobs.Count;
+                            ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                            if (_agentConfig.MaxWorkers > workerThreads ||
+                                _agentConfig.MaxWorkers > asyncThreads) {
+                                var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
+                                _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                                    _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                            }
+                            _availableJobs = availableJobs;
+                            _assignedJobs.Clear();
+                            _updated = true;
                         }
-                        _agentConfig.MaxWorkers = availableJobs.Count;
-                        ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
-                        if (_agentConfig.MaxWorkers > workerThreads ||
-                            _agentConfig.MaxWorkers > asyncThreads) {
-                            var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
-                            _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
-                                _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
-                        }
-                        _availableJobs = availableJobs;
-                        _assignedJobs.Clear();
-                        _updated = true;
                     }
                     break;
                 }

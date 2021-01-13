@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using Autofac;
     using Serilog;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -91,15 +92,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
             var workerId = worker.Key.WorkerId;
             _logger.Information("Stopping worker with id {WorkerId}", workerId);
-            
-            await worker.Key.StopAsync();
-            worker.Value.Dispose();
-            _instances.Remove(worker.Key);
+            if (worker.Key.Status != WorkerStatus.ProcessingJob) {
+                _instances.TryRemove(worker.Key, out _);
+                await worker.Key.StopAsync();
+                worker.Value?.Dispose();
+            }
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            Try.Async(StopAsync).GetAwaiter().GetResult();
             _ensureWorkerRunningTimer?.Dispose();
         }
 
@@ -124,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns></returns>
         private async Task EnsureWorkersAsync() {
 
-            if (_agentConfigProvider.Config?.MaxWorkers <= 0) {
+            if (_agentConfigProvider.Config?.MaxWorkers < 0) {
                 _logger.Error("MaxWorker can't be zero or negative! using default value {DefaultMaxWorkers}", kDefaultWorkers);
                 _agentConfigProvider.Config.MaxWorkers = kDefaultWorkers;
             }
@@ -144,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 delta++;
             }
 
-            //restart stopped worker if necessary
+            // restart stopped worker if necessary
             var workerStartTasks = new List<Task>();
             foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
                 _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
@@ -156,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
         private readonly IAgentConfigProvider _agentConfigProvider;
         private readonly Timer _ensureWorkerRunningTimer;
-        private readonly Dictionary<IWorker, ILifetimeScope> _instances = new Dictionary<IWorker, ILifetimeScope>();
+        private readonly ConcurrentDictionary<IWorker, ILifetimeScope> _instances = new ConcurrentDictionary<IWorker, ILifetimeScope>();
         private readonly ILifetimeScope _lifetimeScope;
         private readonly ILogger _logger;
     }

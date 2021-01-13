@@ -74,21 +74,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
-            if (_assignedJobs.TryGetValue(workerId, out var job)) {
-                return Task.FromResult(job);
-            }
-            if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
-                _assignedJobs.AddOrUpdate(workerId, job);
-                if (_availableJobs.Count == 0) {
+        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+            try {
+                await _lock.WaitAsync();
+                if (_assignedJobs.TryGetValue(workerId, out var job)) {
+                    return job;
+                }
+                if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
+                    _assignedJobs.AddOrUpdate(workerId, job);
+                    if (_availableJobs.Count == 0) {
+                        _updated = false;
+                    }
+                }
+                else {
                     _updated = false;
                 }
-            }
-            else {
-                _updated = false;
-            }
 
-            return Task.FromResult(job);
+                return job;
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -99,29 +105,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="heartbeat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
-            HeartbeatResultModel heartbeatResultModel;
+        public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+            try {
+                await _lock.WaitAsync();
+                _logger.Information("SendHeartbeatAsync for worker {worker}, job {jobId}... ",
+                    heartbeat?.Worker?.WorkerId,
+                    heartbeat?.Job?.JobId);
+                HeartbeatResultModel heartbeatResultModel;
+                if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
+                    if (_availableJobs.Count == 0) {
+                        _logger.Information("SendHeartbeatAsync ...", _legacyCliModel.PublishedNodesFile);
+                        _updated = false;
+                    }
 
-            if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
-                if (_availableJobs.Count == 0) {
-                    _updated = false;
+                    heartbeatResultModel = new HeartbeatResultModel {
+                        HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
+                        LastActiveHeartbeat = DateTime.UtcNow,
+                        UpdatedJob = (_assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out var job) && job.Job.Id != heartbeat.Job.JobId) ? job : null
+                    };
                 }
-
-                heartbeatResultModel = new HeartbeatResultModel {
-                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = _assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out var job) ? job : null
-                };
+                else {
+                    heartbeatResultModel = new HeartbeatResultModel {
+                        HeartbeatInstruction = HeartbeatInstruction.Keep,
+                        LastActiveHeartbeat = DateTime.UtcNow,
+                        UpdatedJob = null
+                    };
+                }
+                _logger.Information("SendHeartbeatAsync updated worker {worker} with {heartbeatInstruction} instruction for job {jobId}.",
+                    heartbeat.Worker.WorkerId,
+                    heartbeatResultModel?.HeartbeatInstruction,
+                    heartbeatResultModel?.UpdatedJob?.Job.Id);
+                return heartbeatResultModel;
             }
-            else {
-                heartbeatResultModel = new HeartbeatResultModel {
-                    HeartbeatInstruction = HeartbeatInstruction.Keep,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = null
-                };
+            finally {
+                _lock.Release();
             }
-
-            return Task.FromResult(heartbeatResultModel);
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
@@ -153,19 +171,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             while (true) {
                 try {
                     await _lock.WaitAsync();
+                    _logger.Information(
+                        "File {publishedNodesFile} reloading... (current lock count: {currentCount})",
+                        _legacyCliModel.PublishedNodesFile, _lock.CurrentCount);
                     Task.Delay((int)Math.Pow(500, retryCount+1)).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
-                    using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                        var content = await reader.ReadToEndAsync();
+                    using (var fileStream = new FileStream(_legacyCliModel.PublishedNodesFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                        var content = fileStream.ReadAsString(Encoding.UTF8);
                         var currentFileHash = GetChecksum(content);
+                        _logger.Information(
+                            "File {publishedNodesFile} has hash: {hash}, old being hash {oldHash}",
+                            _legacyCliModel.PublishedNodesFile, currentFileHash, _lastKnownFileHash);
                         if (currentFileHash != _lastKnownFileHash) {
                             _lastKnownFileHash = currentFileHash;
-                            _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, old hash {oldHash}; current lock count: {currentCount} reloading...",
-                                _legacyCliModel.PublishedNodesFile,
-                                currentFileHash,
-                                _lastKnownFileHash,
-                                _lock.CurrentCount);
-                            _logger.Information("Content: {content}", content);
+                            _logger.Information("Processing new content: {content} ... ", content);
                             if (!String.IsNullOrEmpty(content)) {
                                 var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);
                                 foreach (var job in jobs) {
@@ -194,7 +213,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         });
                                 }
                             }
-                            _agentConfig.MaxWorkers = availableJobs.Count;
+                            _agentConfig.MaxWorkers = availableJobs.Count > _assignedJobs.Count ? availableJobs.Count : _assignedJobs.Count;
                             ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
                             if (_agentConfig.MaxWorkers > workerThreads ||
                                 _agentConfig.MaxWorkers > asyncThreads) {
@@ -202,8 +221,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
                                     _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
                             }
-                            _availableJobs = availableJobs;
                             _assignedJobs.Clear();
+                            _availableJobs = availableJobs;
                             _updated = true;
                         }
                     }

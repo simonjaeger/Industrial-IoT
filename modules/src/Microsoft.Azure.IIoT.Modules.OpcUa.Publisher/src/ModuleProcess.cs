@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
@@ -235,7 +236,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 builder.AddDiagnostics(config,
                     legacyCliOptions.ToLoggerConfiguration());
                 builder.RegisterInstance(legacyCliOptions)
-                    .AsImplementedInterfaces();
+                    .As<IAgentConfigProvider>().
+                    As<ISettingsController>().
+                    As<IEngineConfiguration>().
+                    As<ILegacyCliModelProvider>();
 
                 // we overwrite the ModuleHost registration from PerLifetimeScope
                 // (in builder.RegisterModule<ModuleFramework>) to Singleton as

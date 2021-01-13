@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         Id = string.IsNullOrEmpty(node.DisplayName) ? 
                                                 string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                         PublishedVariableNodeId = node.Id,
-                                        PublishedVariableDisplayName = node.DisplayName,
+                                        PublishedVariableDisplayName = string.IsNullOrEmpty(node.DisplayName) ? node.DataSetFieldId : node.DisplayName,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                             legacyCliModel.DefaultSamplingInterval,
                                         HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?

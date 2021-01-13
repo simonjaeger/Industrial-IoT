@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _fileSystemWatcher.Created += _fileSystemWatcher_Created;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Renamed;
             _fileSystemWatcher.EnableRaisingEvents = true;
-            RefreshJobFromFile(false);
+            RefreshJobFromFileAsync().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -126,17 +126,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
             _logger.Information("File {publishedNodesFile} change trigger ...", _legacyCliModel.PublishedNodesFile);
-            RefreshJobFromFile(false);
+            RefreshJobFromFileAsync().GetAwaiter().GetResult();
         }
 
         private void _fileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
             _logger.Information("File {publishedNodesFile} created trigger ...", _legacyCliModel.PublishedNodesFile);
-            RefreshJobFromFile(false);
+            RefreshJobFromFileAsync().GetAwaiter().GetResult();
         }
 
         private void _fileSystemWatcher_Renamed(object sender, FileSystemEventArgs e) {
-            _logger.Information("File {publishedNodesFile} Renamed trigger ...", _legacyCliModel.PublishedNodesFile);
-            RefreshJobFromFile(true);
+            _logger.Information("File {publishedNodesFile} renamed trigger ...", _legacyCliModel.PublishedNodesFile);
+            RefreshJobFromFileAsync().GetAwaiter().GetResult();
         }
 
         private static string GetChecksum(string content) {
@@ -148,23 +148,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return BitConverter.ToString(checksum).Replace("-", string.Empty);
         }
 
-        private void RefreshJobFromFile(bool renamed) {
+        private async Task RefreshJobFromFileAsync() {
             var retryCount = 0;
             while (true) {
                 try {
-                    _lock.Wait();
+                    await _lock.WaitAsync();
                     Task.Delay((int)Math.Pow(500, retryCount+1)).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                        var content = reader.ReadToEnd();
+                        var content = await reader.ReadToEndAsync();
                         var currentFileHash = GetChecksum(content);
                         if (currentFileHash != _lastKnownFileHash) {
+                            _lastKnownFileHash = currentFileHash;
                             _logger.Information("File {publishedNodesFile} with new hash: {hash} has changed, old hash {oldHash}; current lock count: {currentCount} reloading...",
                                 _legacyCliModel.PublishedNodesFile,
                                 currentFileHash,
                                 _lastKnownFileHash,
                                 _lock.CurrentCount);
-                            _lastKnownFileHash = currentFileHash;
                             _logger.Information("Content: {content}", content);
                             if (!String.IsNullOrEmpty(content)) {
                                 var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);

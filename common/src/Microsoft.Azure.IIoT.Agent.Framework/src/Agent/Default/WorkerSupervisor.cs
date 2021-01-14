@@ -92,11 +92,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
             var workerId = worker.Key.WorkerId;
             _logger.Information("Stopping worker with id {WorkerId}", workerId);
-            if (worker.Key.Status != WorkerStatus.ProcessingJob) {
-                _instances.TryRemove(worker.Key, out _);
-                await worker.Key.StopAsync();
-                worker.Value?.Dispose();
-            }
+            _instances.TryRemove(worker.Key, out _);
+            await worker.Key.StopAsync();
+            worker.Value?.Dispose();
         }
 
         /// <inheritdoc/>

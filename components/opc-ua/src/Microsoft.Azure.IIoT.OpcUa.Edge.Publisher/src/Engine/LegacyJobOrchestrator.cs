@@ -80,14 +80,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return job;
                 }
+
                 if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
-                    if (_availableJobs.Count == 0) {
-                        _updated = false;
-                    }
-                }
-                else {
-                    _updated = false;
                 }
 
                 return job;
@@ -112,23 +107,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     heartbeat?.Worker?.WorkerId,
                     heartbeat?.Job?.JobId);
                 HeartbeatResultModel heartbeatResultModel;
-                if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
-                    if (_availableJobs.Count == 0) {
-                        _logger.Information("SendHeartbeatAsync ...", _legacyCliModel.PublishedNodesFile);
-                        _updated = false;
+                if (heartbeat.Job != null) {
+                    if (_assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out var job)
+                        && job.Job.Id == heartbeat.Job.JobId) {
+                        heartbeatResultModel = new HeartbeatResultModel {
+                            HeartbeatInstruction = HeartbeatInstruction.Keep,
+                            LastActiveHeartbeat = DateTime.UtcNow,
+                            UpdatedJob = null,
+                        };
                     }
-
-                    heartbeatResultModel = new HeartbeatResultModel {
-                        HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
-                        LastActiveHeartbeat = DateTime.UtcNow,
-                        UpdatedJob = (_assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out var job) && job.Job.Id != heartbeat.Job.JobId) ? job : null
-                    };
+                    else {
+                        heartbeatResultModel = new HeartbeatResultModel {
+                            HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
+                            LastActiveHeartbeat = DateTime.UtcNow,
+                            UpdatedJob = job,
+                        };
+                    }
                 }
                 else {
                     heartbeatResultModel = new HeartbeatResultModel {
                         HeartbeatInstruction = HeartbeatInstruction.Keep,
                         LastActiveHeartbeat = DateTime.UtcNow,
-                        UpdatedJob = null
+                        UpdatedJob = null,
                     };
                 }
                 _logger.Information("SendHeartbeatAsync updated worker {worker} with {heartbeatInstruction} instruction for job {jobId}.",
@@ -188,7 +188,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             if (!String.IsNullOrEmpty(content)) {
                                 var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);
                                 foreach (var job in jobs) {
-                                    var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
+
+                                    var jobId = string.IsNullOrEmpty(job.WriterGroup.WriterGroupId) 
+                                        ? $"Standalone_{_identity.DeviceId}_{Guid.NewGuid()} "
+                                        : job.WriterGroup.WriterGroupId;
+
                                     job.WriterGroup.DataSetWriters.ForEach(d => {
                                         d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                                         d.DataSet.ExtensionFields["PublisherId"] = jobId;
@@ -223,7 +227,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             _assignedJobs.Clear();
                             _availableJobs = availableJobs;
-                            _updated = true;
                         }
                     }
                     break;
@@ -260,7 +263,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
-        private bool _updated;
         private static readonly SemaphoreSlim _lock = new SemaphoreSlim(1,1);
     }
 }

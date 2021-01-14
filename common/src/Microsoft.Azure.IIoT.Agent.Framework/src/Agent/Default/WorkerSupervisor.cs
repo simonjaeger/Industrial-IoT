@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
@@ -131,6 +132,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
             var workers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             var delta = workers - _instances.Count;
+
+            if (delta > 0) {
+                ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                if (workers > workerThreads || workers > asyncThreads) {
+                    var result = ThreadPool.SetMinThreads(workers, workers);
+                    _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                        workers, workers, result ? "succeeded" : "failed");
+                }
+            }
 
             // start new worker if necessary
             while (delta > 0) {

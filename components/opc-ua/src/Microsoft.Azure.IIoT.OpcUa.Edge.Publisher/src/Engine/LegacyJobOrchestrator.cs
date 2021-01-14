@@ -77,15 +77,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
             try {
                 await _lock.WaitAsync();
-                if (_assignedJobs.TryGetValue(workerId, out var job)) {
-                    return job;
-                }
 
-                if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
+                if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out var job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
+                }
+                else {
+                    _assignedJobs.TryGetValue(workerId, out job);
                 }
 
                 return job;
+            }
+            catch(Exception e) {
+                _logger.Error(e, "Failed to get available job for worked {workedId}", workerId);
+                return null;
             }
             finally {
                 _lock.Release();
@@ -185,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         if (currentFileHash != _lastKnownFileHash) {
                             _lastKnownFileHash = currentFileHash;
                             _logger.Information("Processing new content: {content} ... ", content);
-                            if (!String.IsNullOrEmpty(content)) {
+                            if (!string.IsNullOrEmpty(content)) {
                                 var jobs = _publishedNodesJobConverter.Read(content, _legacyCliModel);
                                 foreach (var job in jobs) {
 
@@ -217,16 +221,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         });
                                 }
                             }
-                            _agentConfig.MaxWorkers = availableJobs.Count > _assignedJobs.Count ? availableJobs.Count : _assignedJobs.Count;
-                            ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
-                            if (_agentConfig.MaxWorkers > workerThreads ||
-                                _agentConfig.MaxWorkers > asyncThreads) {
-                                var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
-                                _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
-                                    _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                            if (_agentConfig.MaxWorkers < availableJobs.Count + _availableJobs.Count) {
+                                _agentConfig.MaxWorkers = availableJobs.Count + _availableJobs.Count;
                             }
+
                             _assignedJobs.Clear();
-                            _availableJobs = availableJobs;
+                            foreach (var job in availableJobs) {
+                                _availableJobs.Enqueue(job);
+                            }
                         }
                     }
                     break;
@@ -245,6 +247,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Error(sx, "SerializerException while loading job from file.");
                     break;
                 }
+                catch (Exception e) {
+                    _logger.Error(e, "Unhandled exception.");
+                    throw;
+                }
                 finally {
                     _logger.Information("File {publishedNodesFile} has changed, reloading finalized", _legacyCliModel.PublishedNodesFile);
                     _lock.Release();
@@ -260,7 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
+        private readonly ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private static readonly SemaphoreSlim _lock = new SemaphoreSlim(1,1);

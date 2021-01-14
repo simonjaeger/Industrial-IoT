@@ -236,10 +236,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 builder.AddDiagnostics(config,
                     legacyCliOptions.ToLoggerConfiguration());
                 builder.RegisterInstance(legacyCliOptions)
-                    .As<IAgentConfigProvider>().
-                    As<ISettingsController>().
-                    As<IEngineConfiguration>().
-                    As<ILegacyCliModelProvider>();
+                    .AsImplementedInterfaces();
 
                 // we overwrite the ModuleHost registration from PerLifetimeScope
                 // (in builder.RegisterModule<ModuleFramework>) to Singleton as

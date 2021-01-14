@@ -176,8 +176,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 try {
                     await _lock.WaitAsync();
                     _logger.Information(
-                        "File {publishedNodesFile} reloading... (current lock count: {currentCount})",
-                        _legacyCliModel.PublishedNodesFile, _lock.CurrentCount);
+                        "File {publishedNodesFile} reload started from thread {threadId} with current lock count: {currentCount}...",
+                        _legacyCliModel.PublishedNodesFile,
+                        Thread.CurrentThread.ManagedThreadId,
+                        _lock.CurrentCount);
                     Task.Delay((int)Math.Pow(500, retryCount+1)).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     using (var fileStream = new FileStream(_legacyCliModel.PublishedNodesFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {

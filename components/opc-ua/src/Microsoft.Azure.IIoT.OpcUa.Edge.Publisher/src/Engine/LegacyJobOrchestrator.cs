@@ -174,12 +174,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var retryCount = 0;
             while (true) {
                 try {
-                    await _lock.WaitAsync();
                     _logger.Information(
-                        "File {publishedNodesFile} reload started from thread {threadId} with current lock count: {currentCount}...",
+                        "File {publishedNodesFile} reload started with current lock count: {currentCount}...",
                         _legacyCliModel.PublishedNodesFile,
-                        Thread.CurrentThread.ManagedThreadId,
                         _lock.CurrentCount);
+
+                    await _lock.WaitAsync();
+                    
                     Task.Delay((int)Math.Pow(500, retryCount+1)).GetAwaiter().GetResult();
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     using (var fileStream = new FileStream(_legacyCliModel.PublishedNodesFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
@@ -254,7 +255,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     throw;
                 }
                 finally {
-                    _logger.Information("File {publishedNodesFile} has changed, reloading finalized", _legacyCliModel.PublishedNodesFile);
+                    _logger.Information("File {publishedNodesFile} reload finalized with current lock count: {currentCount}.",
+                        _legacyCliModel.PublishedNodesFile,
+                        _lock.CurrentCount);
                     _lock.Release();
                 }
             }

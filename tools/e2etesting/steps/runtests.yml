@@ -51,7 +51,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PCS_CONTAINER_REGISTRY_SERVER,PCS_CONTAINER_REGISTRY_USER,PCS_CONTAINER_REGISTRY_PASSWORD,PCS_IMAGES_NAMESPACE,PCS_IMAGES_TAG'
 
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with PublisherMode=${{ parameters.PublisherMode }})'
@@ -79,3 +79,7 @@ steps:
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
     PCS_IMAGES_TAG: '$(PlatformVersion)'
+    PCS_CONTAINER_REGISTRY_SERVER: "$(pcs-container-registry-server)"
+    PCS_CONTAINER_REGISTRY_USER: "$(pcs-container-registry-user)"
+    PCS_CONTAINER_REGISTRY_PASSWORD: "$(pcs-container-registry-password)"
+    PCS_IMAGES_NAMESPACE: "$(pcs-images-namespace)"

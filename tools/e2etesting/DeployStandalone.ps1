@@ -97,4 +97,24 @@ $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothu
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
 
+Write-Host "Adding/Updating KeyVault-Secret 'PCS_CONTAINER_REGISTRY_SERVER' with value '***'..."
+$containerRegistryServer = $env:ContainerRegistryServer
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS_CONTAINER_REGISTRY_SERVER' -SecretValue (ConvertTo-SecureString $containerRegistryServer -AsPlainText -Force) | Out-Null
+
+Write-Host "Adding/Updating KeyVault-Secret 'PCS_CONTAINER_REGISTRY_USER' with value '***'..."
+$containerRegistryUser = $env:ContainerRegistryUsername
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS_CONTAINER_REGISTRY_USER' -SecretValue (ConvertTo-SecureString $containerRegistryUser -AsPlainText -Force) | Out-Null
+
+Write-Host "Adding/Updating KeyVault-Secret 'PCS_CONTAINER_REGISTRY_PASSWORD' with value '***'..."
+$containerRegistryPassword = $env:ContainerRegistryUsername
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS_CONTAINER_REGISTRY_PASSWORD' -SecretValue (ConvertTo-SecureString $ContainerRegistryPassword -AsPlainText -Force) | Out-Null
+
+Write-Host "Adding/Updating KeyVault-Secret 'PCS_IMAGES_NAMESPACE' with value '***'..."
+$imageNamespace = $env:ImageNamespace
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS_IMAGES_NAMESPACE' -SecretValue (ConvertTo-SecureString $imageNamespace -AsPlainText -Force) | Out-Null
+
+Write-Host "Adding/Updating KeyVault-Secret 'PCS_IMAGES_TAG' with value '***'..."
+$imageTags = $env:PlatformVersion
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS_IMAGES_TAG' -SecretValue (ConvertTo-SecureString $imageTags -AsPlainText -Force) | Out-Null
+
 Write-Host "Deployment finished."

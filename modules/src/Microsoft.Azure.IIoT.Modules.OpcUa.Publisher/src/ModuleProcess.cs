@@ -110,6 +110,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                             "OpcPublisher", version, this);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
+                        if (_runInLegacyMode) {
+                            var orchestrator = hostScope.Resolve<IJobOrchestrator>();
+                        }
                         await workerSupervisor.StartAsync();
                         sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
@@ -191,8 +194,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
-
-            if (legacyCliOptions.RunInLegacyMode) {
+            _runInLegacyMode = legacyCliOptions.RunInLegacyMode;
+            if (_runInLegacyMode) {
                 builder.AddDiagnostics(config,
                     legacyCliOptions.ToLoggerConfiguration());
                 builder.RegisterInstance(legacyCliOptions)
@@ -244,6 +247,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private readonly IConfigurationRoot _config;
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
+        private bool _runInLegacyMode = false;
         private TaskCompletionSource<bool> _reset;
         private const int kPublisherPrometheusPort = 9702;
         private static readonly Gauge kPublisherModuleStart = Metrics

@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns></returns>
         private async Task EnsureWorkersAsync() {
 
-            if (_agentConfigProvider.Config?.MaxWorkers < 0) {
+            if (_agentConfigProvider.Config?.MaxWorkers <= 0) {
                 _logger.Error("MaxWorker can't be zero or negative! using default value {DefaultMaxWorkers}", kDefaultWorkers);
                 _agentConfigProvider.Config.MaxWorkers = kDefaultWorkers;
             }

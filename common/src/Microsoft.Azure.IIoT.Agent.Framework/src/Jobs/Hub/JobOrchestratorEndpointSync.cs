@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// </summary>
         /// <param name="sender"></param>
         private void OnUpdateTimerFiredAsync(object sender) {
-            lock(_timerLock) {
+            lock (_timerLock) {
                 try {
                     _cts.Token.ThrowIfCancellationRequested();
                     _logger.Information("Updating orchestrator urls...");

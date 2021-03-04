@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Crypto;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-
+    
     /// <summary>
     /// Published nodes
     /// </summary>
@@ -51,7 +52,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             var sw = Stopwatch.StartNew();
             _logger.Information("Deserializing published nodes file ({elapsed})", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(content);
-
+            if (items == null) {
+                throw new SerializerException("Published nodes files, missformed");
+            }
             _logger.Information(
                 "Read {count} items from published nodes file in {elapsed}",
                 items.Count, sw.Elapsed);

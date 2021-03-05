@@ -34,17 +34,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
         /// <param name="logger">Logger to write log messages.</param>
         /// <param name="identity">Module's identity provider.</param>
-
+        /// <param name="workerSupervisor">Module's worker supervisor.</param>
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
-            IJobSerializer jobSerializer, ILogger logger, IIdentity identity) {
+            IJobSerializer jobSerializer, ILogger logger, IIdentity identity, IWorkerSupervisor workerSupervisor) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
                     ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
             _agentConfig = agentConfigProvider.Config
                     ?? throw new ArgumentNullException(nameof(agentConfigProvider));
-
+            _workerSupervisor = workerSupervisor ?? throw new ArgumentNullException(nameof(workerSupervisor));
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _identity = identity ?? throw new ArgumentNullException(nameof(identity));			
@@ -281,6 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             _availableJobs = availableJobs;
                             _assignedJobs = assignedJobs;
+                            await _workerSupervisor.ForceWorkersResetAsync();
                         }
                         else {
                             _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
@@ -322,6 +323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly AgentConfigModel _agentConfig;
         private readonly IIdentity _identity;
         private readonly ILogger _logger;
+        private readonly IWorkerSupervisor _workerSupervisor;
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;

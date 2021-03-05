@@ -60,11 +60,22 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
 
             await Task.WhenAll(stopTasks);
+            foreach (var instance in _instances.ToList()) {
+                instance.Value?.Dispose();
+            }
+
             _logger.Information("Worker supervisor successfully stopped");
         }
 
         /// <inheritdoc/>
         public int NumberOfWorkers => _instances.Count;
+
+        /// <inheritdoc/>
+        public async Task ForceWorkersResetAsync() {
+            foreach (var instance in _instances.ToList()) {
+                await instance.Key.ForceResetAsync();
+            }
+        }
 
         /// <summary>
         /// Create worker

@@ -143,6 +143,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _lock.Dispose();
         }
 
+        /// <inheritdoc/>
+        public async Task ForceResetAsync() {
+            if (Status == WorkerStatus.ProcessingJob && _jobProcess != null) {
+                _jobProcess.ForceReset();
+            }
+            else {
+                await StopAsync();
+                await StartAsync();
+            }
+        }
+
         /// <summary>
         /// Heartbeat timer
         /// </summary>
@@ -318,7 +329,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     Job.JobConfigurationType, new NamedParameter(nameof(jobConfig), jobConfig));
 
                 _jobScope = workerScope.BeginLifetimeScope(
-                    jobProcessorFactory.GetJobContainerScope(outer.WorkerId, Job.Id));
+                    jobProcessorFactory.GetJobContainerScope(outer.WorkerId, Job.Name));
                 _currentProcessingEngine = _jobScope.Resolve<IProcessingEngine>();
 
                 // Continuously send job status heartbeats
@@ -332,6 +343,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <returns></returns>
             public Task WaitAsync(CancellationToken ct) {
                 return _processor.ContinueWith(_ => Task.CompletedTask, ct);
+            }
+
+            /// <summary>
+            /// forces a heartbeat call
+            /// </summary>
+            public void ForceReset() {
+                _heartbeatTimer.Change(TimeSpan.Zero, _outer._heartbeatInterval);
             }
 
             /// <inheritdoc/>

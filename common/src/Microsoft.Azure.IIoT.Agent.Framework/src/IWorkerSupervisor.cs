@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Worker supervisor
     /// </summary>
@@ -13,5 +15,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// The amount of workers currently running
         /// </summary>
         int NumberOfWorkers { get; }
+
+        /// <summary>
+        /// Force a 
+        /// </summary>
+        Task ForceWorkersResetAsync();
     }
 }

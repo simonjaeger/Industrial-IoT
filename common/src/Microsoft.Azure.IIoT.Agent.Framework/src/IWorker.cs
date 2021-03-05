@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Handle job cancelled
@@ -56,5 +57,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Started event
         /// </summary>
         event JobStartedEventHandler OnJobStarted;
+
+        /// <summary>
+        /// Forces a reset of the worker
+        /// </summary>
+        /// <returns></returns>
+        Task ForceResetAsync();
+
     }
 }

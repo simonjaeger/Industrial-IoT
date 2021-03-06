@@ -28,15 +28,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
+            var workerSupervisorMock = new Mock<IWorkerSupervisor>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-
+            
             var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/publishednodes.json"};
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var converter = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var converter = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object,
+                    jobSerializer, TraceLogger.Create(), identityMock.Object, workerSupervisorMock.Object);
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
             for (var i = 0; i < 10; i++) {

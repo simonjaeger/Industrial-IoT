@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Forces a reset of the worker
         /// </summary>
         /// <returns></returns>
-        Task ForceResetAsync();
+        Task ResetAsync();
 
     }
 }

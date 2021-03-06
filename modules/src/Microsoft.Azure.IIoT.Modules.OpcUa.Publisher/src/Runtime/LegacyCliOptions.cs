@@ -315,8 +315,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Capabilities = new Dictionary<string, string>(),
                 HeartbeatInterval = TimeSpan.FromSeconds(30), // heartbeat is needed even though in standalone mode to be notified about config file changes
                 JobCheckInterval = TimeSpan.FromSeconds(30),
-                JobOrchestratorUrl = "standalone", //we have to set a value so that the (legacy) job orchestrator is called
-                MaxWorkers = 1
+                JobOrchestratorUrl = "standalone", // we have to set a value so that the (legacy) job orchestrator is called
+                MaxWorkers = 0
             };
         }
 

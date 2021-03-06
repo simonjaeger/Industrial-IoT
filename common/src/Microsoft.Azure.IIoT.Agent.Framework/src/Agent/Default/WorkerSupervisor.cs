@@ -71,9 +71,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         public int NumberOfWorkers => _instances.Count;
 
         /// <inheritdoc/>
-        public async Task ForceWorkersResetAsync() {
+        public async Task ResetAsync() {
             foreach (var instance in _instances.ToList()) {
-                await instance.Key.ForceResetAsync();
+                await instance.Key.ResetAsync();
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
             }
-            
+
             var childScope = _lifetimeScope.BeginLifetimeScope();
             var worker = childScope.Resolve<IWorker>(new NamedParameter("workerInstance", _instances.Count));
             _instances[worker] = childScope;
@@ -101,12 +101,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns>awaitable task</returns>
         private async Task StopWorker() {
             // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminate first 
-            var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
-            var workerId = worker.Key.WorkerId;
-            _logger.Information("Stopping worker with id {WorkerId}", workerId);
-            _instances.TryRemove(worker.Key, out _);
-            await worker.Key.StopAsync();
-            worker.Value?.Dispose();
+            if (_instances.Count > 0) {
+                var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
+                var workerId = worker.Key.WorkerId;
+                _logger.Information("Stopping worker with id {WorkerId}", workerId);
+                _instances.TryRemove(worker.Key, out _);
+                await worker.Key.StopAsync();
+                worker.Value?.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -136,8 +138,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns></returns>
         private async Task EnsureWorkersAsync() {
 
-            if (_agentConfigProvider.Config?.MaxWorkers <= 0) {
-                _logger.Error("MaxWorker can't be zero or negative! using default value {DefaultMaxWorkers}", kDefaultWorkers);
+            if (_agentConfigProvider.Config?.MaxWorkers < 0) {
+                _logger.Error("MaxWorker can't be negative! using default value {DefaultMaxWorkers}", kDefaultWorkers);
                 _agentConfigProvider.Config.MaxWorkers = kDefaultWorkers;
             }
 

@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         int NumberOfWorkers { get; }
 
         /// <summary>
-        /// Force a 
+        /// Resets the all worker children
         /// </summary>
-        Task ForceWorkersResetAsync();
+        Task ResetAsync();
     }
 }

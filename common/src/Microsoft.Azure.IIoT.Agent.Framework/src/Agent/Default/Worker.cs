@@ -84,6 +84,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
 
                 _cts = new CancellationTokenSource();
+                _reset = new TaskCompletionSource<bool>();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
                 _logger.Information("Worker {WorkerId}: {@Capabilities}",
@@ -144,13 +145,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <inheritdoc/>
-        public async Task ForceResetAsync() {
-            if (Status == WorkerStatus.ProcessingJob && _jobProcess != null) {
-                _jobProcess.ForceReset();
+        public async Task ResetAsync() {
+            try {
+                if (Status == WorkerStatus.ProcessingJob && _jobProcess != null) {
+                    await _jobProcess.ResetAsync();
+                }
+                else {
+                    _reset?.TrySetResult(true);
+                }
             }
-            else {
-                await StopAsync();
-                await StartAsync();
+            catch (Exception e) {
+                _logger.Error(e, "Reset failed.");
             }
         }
 
@@ -206,7 +211,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         jobProcessInstruction?.ProcessMode == null) {
                         _logger.Debug("Worker: {Id}, no job received, wait {delay} ...",
                             WorkerId, _jobCheckerInterval);
-                        await Task.Delay(_jobCheckerInterval, ct);
+                        _reset.Task.Wait(_jobCheckerInterval.Milliseconds, ct);
+                        _reset = new TaskCompletionSource<bool>();
                         continue;
                     }
 
@@ -226,7 +232,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     _logger.Error(ex, "Worker: {Id}, exception during worker processing, wait {delay}...",
                         WorkerId, _jobCheckerInterval);
                     kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Exception during worker processing").Inc();
-                    await Task.Delay(_jobCheckerInterval, ct);
+                    _reset.Task.Wait(_jobCheckerInterval.Milliseconds, ct);
+                    _reset = new TaskCompletionSource<bool>();
                 }
             }
             _logger.Information("Worker stopping...");
@@ -346,10 +353,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
 
             /// <summary>
-            /// forces a heartbeat call
+            /// Resets the processing job
             /// </summary>
-            public void ForceReset() {
-                _heartbeatTimer.Change(TimeSpan.Zero, _outer._heartbeatInterval);
+            public async Task ResetAsync() {
+                try {
+                    _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    await SendHeartbeatAsync(_cancellationTokenSource.Token);
+                }
+                finally {
+                    _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval);
+                }
             }
 
             /// <inheritdoc/>
@@ -554,6 +567,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private JobProcess _jobProcess;
         private Task _worker;
         private CancellationTokenSource _cts;
+        private TaskCompletionSource<bool> _reset;
         private static readonly Counter kModuleExceptions = Metrics.CreateCounter("iiot_edge_publisher_exceptions", "module exceptions",
             new CounterConfiguration {
                 LabelNames = new[] { "agent", "source", "type", "message", "stacktrace", "custom_message" }

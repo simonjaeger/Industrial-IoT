@@ -147,11 +147,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <inheritdoc/>
         public async Task ResetAsync() {
             try {
-                if (Status == WorkerStatus.ProcessingJob && _jobProcess != null) {
-                    await _jobProcess.ResetAsync();
-                }
-                else {
-                    _reset?.TrySetResult(true);
+                if (!_cts.IsCancellationRequested) {
+                // try to reset the job process
+                if (_jobProcess == null || !await _jobProcess.ResetAsync()) {
+                        // reset the worker
+                        _reset?.TrySetResult(true);
+                    }
                 }
             }
             catch (Exception e) {
@@ -355,14 +356,21 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Resets the processing job
             /// </summary>
-            public async Task ResetAsync() {
-                try {
-                    _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                    await SendHeartbeatAsync(_cancellationTokenSource.Token);
+            public async Task<bool> ResetAsync() {
+
+                if (Status == WorkerStatus.ProcessingJob && !_cancellationTokenSource.IsCancellationRequested) {
+                    try {
+                        _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                        await SendHeartbeatAsync(_cancellationTokenSource.Token);
+                        return true;
+                    }
+                    finally {
+                        if (!_cancellationTokenSource.IsCancellationRequested) {
+                            _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval);
+                        }
+                    }
                 }
-                finally {
-                    _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval);
-                }
+                return false;
             }
 
             /// <inheritdoc/>

@@ -3,8 +3,6 @@ parameters:
   type: string
 - name: ModeValue
   type: string
-- name: ResourceGroupName
-  type: string
 
 steps:
 - task: AzureCLI@2
@@ -27,7 +25,7 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
     scriptArguments: >
-      -ResourceGroupName '${{ parameters.ResourceGroupName }}'
+      -ResourceGroupName '$(ResourceGroup)'
 
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
@@ -39,7 +37,7 @@ steps:
     scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
     scriptArguments: >
       -KeyVaultName "$(KeyVaultName)"
-      -ResourceGroupName "${{ parameters.ResourceGroupName }}"
+      -ResourceGroupName "$(ResourceGroup)"
       -ServicePrincipalName "$(ServicePrincipalId)"
 
 - task: AzureKeyVault@1

@@ -15,11 +15,10 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
-- task: Bash@3
+- task: ShellScript@2
   inputs:
-    targetType: 'filePath' 
-    filePath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: -rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)"
+    scriptPath: '$(BasePath)\NestedEdge\install.sh'
+    args: -rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

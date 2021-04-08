@@ -9,11 +9,7 @@ Write-Host (Get-Location).Path
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
-$ResourceGroupName = "mabakovi-nestededge-omp"
-$iothub = "IoTHub20210325082259"
-Start-Process (./NestedEdge/install.sh -rg $ResourceGroupName -hubrg $ResourceGroupName -hubname $iothub) -Wait
 
-Write-Host "here"
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
@@ -69,9 +65,10 @@ $creds = Get-AzContainerRegistryCredential -Registry $registry
 ## Update ACR.env file
 $fileName = "ACR.env"
 $currentPath = (Get-Location).Path
-$solutionPath = Get-ChildItem -Path $currentPath $fileName -Recurse -ErrorAction SilentlyContinue
-Write-Host "The solution path is: $solutionPath"
+$path = Get-ChildItem -Path $currentPath $fileName -Recurse -ErrorAction SilentlyContinue
+Write-Host "The solution path is: $path"
 
+$acrFile = "./tools/e2etesting/NestedEdge/ACR.env"
 $arcEnvOriginal =  Get-Content $acrFile
 $acrEnv = $arcEnvOriginal
 $acrEnv = $acrEnv -replace 'YOUR_ACR_ADDRESS', ($creds.Username + ".azurecr.io")

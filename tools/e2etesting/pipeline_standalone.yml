@@ -51,6 +51,7 @@ stages:
       parameters:
         ModeName: PublisherMode
         ModeValue: standalone
+        ResourceGroupName: variables['ResourceGroupName']
 
 - stage: cleanup
   displayName: Cleanup resources

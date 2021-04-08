@@ -63,7 +63,7 @@ $registry = New-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name 
 $creds = Get-AzContainerRegistryCredential -Registry $registry
 
 ## Update ACR.env file
-$acrFile = "./NestedEdge/ACR.env"
+$acrFile = "./tools/e2etesting/NestedEdge/ACR.env"
 $arcEnvOriginal =  Get-Content $acrFile
 $acrEnv = $arcEnvOriginal
 $acrEnv = $acrEnv -replace 'YOUR_ACR_ADDRESS', ($creds.Username + ".azurecr.io")

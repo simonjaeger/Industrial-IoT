@@ -15,9 +15,9 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
-- task: Bash@3
+- task: BatchScript@1
   inputs:
-    filePath: '$(BasePath)\NestedEdge\install.sh'
+    filename: '$(BasePath)\NestedEdge\install.sh'
     arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
 
 - task: AzurePowerShell@5

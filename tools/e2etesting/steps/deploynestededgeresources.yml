@@ -24,8 +24,9 @@ steps:
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
-      Write-Host ${env:iothub}
-      $iotHubName = Get-AzIotHub -ResourceGroupName $ResourceGroupName
+      Write-Host $(ResourceGroupName)
+      Write-Host ${env:iothub}   
+      $iotHubName = Get-AzIotHub -ResourceGroupName $(ResourceGroupName)
       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
       Write-Host ${env:iothub}
 

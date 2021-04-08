@@ -15,6 +15,20 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
+- task: AzureCLI@2
+  displayName: 'Set IoT Hub name'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host ${env:iothub}
+      $iotHubName = Get-AzIotHub -ResourceGroupName $ResourceGroupName
+      Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
+      Write-Host ${env:iothub}
+
 - task: BatchScript@1
   inputs:
     filename: '$(BasePath)\NestedEdge\install.sh'

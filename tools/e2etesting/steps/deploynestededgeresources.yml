@@ -26,7 +26,7 @@ steps:
     inlineScript: |
       Write-Host $(ResourceGroupName)
       Write-Host ${env:iothub}   
-      $iotHubName = Get-AzIotHub -ResourceGroupName $(ResourceGroupName)
+      $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
       Write-Host ${env:iothub}
 

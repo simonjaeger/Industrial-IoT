@@ -4,6 +4,22 @@ steps:
     artifact: 'testartifacts'
     path: $(BasePath)
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: echo "Test"
+
+- task: AzurePowerShell@5
+  displayName: "Deploy ACR"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployAcr.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+
 - task: AzureCLI@2
   displayName: 'Set IoT Hub name'
   inputs:
@@ -20,25 +36,11 @@ steps:
       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
       Write-Host ${env:iothub}
 
-- task: PowerShell@2
+- task: Bash@3
   inputs:
-    targetType: 'filePath' 
+    workingDirectory: '$(BasePath)\NestedEdge'
     filePath: '$(BasePath)\NestedEdge\install.sh'
     arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
-    #pwsh: false 
-    #workingDirectory: '$(BasePath)\NestedEdge'
-
-- task: AzurePowerShell@5
-  displayName: "Deploy ACR"
-  timeoutInMinutes: 30
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\DeployAcr.ps1'
-    scriptArguments: >
-      -ResourceGroupName "$(ResourceGroupName)"
-
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

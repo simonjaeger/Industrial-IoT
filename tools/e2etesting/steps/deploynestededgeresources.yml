@@ -40,7 +40,7 @@ steps:
   inputs:
     workingDirectory: '$(BasePath)\NestedEdge'
     filePath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
+    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub)'
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

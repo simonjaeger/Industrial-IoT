@@ -5,8 +5,6 @@ Param(
     $TenantId
 )
 
-Write-Host (Get-Location).Path
-
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
 
@@ -76,6 +74,10 @@ $acrEnv = $acrEnv -replace 'YOUR_ACR_USERNAME', $creds.Username
 $acrEnv = $acrEnv -replace 'YOUR_ACR_PASSWORD', $creds.Password
 $acrEnv | Out-File $acrFile
 
+Write-Host
+Write-Host $acrEnv
+Write-Host
+
 ## Check if KeyVault exists
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
@@ -86,7 +88,7 @@ if ($keyVault.Count -ne 1) {
 Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
 ## Generate SSH keys
-$KeysPath = "D:\a\1\s\.ssh"
+$KeysPath = $env:System_DefaultWorkingDirectory + "\.ssh"
 
 if(!(Test-Path $KeysPath)) {
     New-Item -ItemType Directory -Force -Path $KeysPath > $null
@@ -104,5 +106,3 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privateke
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
-
-Write-Host $($env:System_DefaultWorkingDirectory)

@@ -11,7 +11,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeployAcr.ps1'
+    scriptPath: '$(BasePath)\NestedEdge\PreNestedEdgeDeployment.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
@@ -32,7 +32,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptType: filePath
-    scriptPath: '$(BasePath)\PostNestedEdgeDeployment.ps1'
+    scriptPath: '$(BasePath)\NestedEdge\PostNestedEdgeDeployment.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 

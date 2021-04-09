@@ -20,21 +20,21 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
-- task: AzureCLI@2
-  displayName: 'Set IoT Hub name'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host $(BasePath)
-      Write-Host $(ResourceGroupName)
-      Write-Host ${env:iothub}   
-      $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
-      Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
-      Write-Host ${env:iothub}
+# - task: AzureCLI@2
+#   displayName: 'Set IoT Hub name'
+#   inputs:
+#     azureSubscription: '$(AzureSubscription)'
+#     azurePowerShellVersion: 'latestVersion'
+#     scriptLocation: 'InlineScript'
+#     scriptType: 'ps'
+#     addSpnToEnvironment: true
+#     inlineScript: |
+#       Write-Host $(BasePath)
+#       Write-Host $(ResourceGroupName)
+#       Write-Host ${env:iothub}   
+#       $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
+#       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
+#       Write-Host ${env:iothub}
 
 - task: Bash@3
   inputs:

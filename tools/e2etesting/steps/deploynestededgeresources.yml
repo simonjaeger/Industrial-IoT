@@ -33,7 +33,8 @@ steps:
 
 - task: Bash@3
   inputs:
-    filePath: '$(BasePath)\NestedEdge\install.sh'
+    workingDirectory: '$(BasePath)\NestedEdge'
+    filePath: 'install.sh'
     arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
 
 - task: AzurePowerShell@5

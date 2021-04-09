@@ -4,11 +4,6 @@ steps:
     artifact: 'testartifacts'
     path: $(BasePath)
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: echo "Test"
-
 - task: AzurePowerShell@5
   displayName: "Deploy ACR"
   timeoutInMinutes: 30
@@ -40,7 +35,7 @@ steps:
   inputs:
     workingDirectory: '$(BasePath)\NestedEdge'
     filePath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub)'
+    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:\a\1\s\.ssh"'
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

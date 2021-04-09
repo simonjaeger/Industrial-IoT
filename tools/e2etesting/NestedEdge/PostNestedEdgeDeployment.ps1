@@ -12,10 +12,6 @@ if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
 
-if (!$KeysPath) {
-    Write-Error "Path to store certifactes not set."
-}
-
 if (!(Test-Path -Path $KeysPath)) {
     New-Item -ItemType Directory -Path $KeysPath | Out-Null
 }

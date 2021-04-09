@@ -84,13 +84,9 @@ Write-Host $acrEnv
 Write-Host
 
 ## Check if KeyVault exists
-$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
+$keyVault = "e2etestingkeyVault" + $testSuffix
 
-if ($keyVault.Count -ne 1) {
-    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-} 
-
-Write-Host "Key Vault Name: $($keyVault.VaultName)"
+Write-Host "Key Vault Name: $($keyVault)"
 
 ## Generate SSH keys
 $KeysPath = $env:System_DefaultWorkingDirectory + "\.ssh"
@@ -107,7 +103,7 @@ $sshPrivateKey = Get-Content $privateKeyFilePath -Raw
 $sshPublicKey = Get-Content $publicKeyFilePath -Raw
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null

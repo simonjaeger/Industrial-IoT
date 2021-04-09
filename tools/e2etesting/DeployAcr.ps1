@@ -88,8 +88,8 @@ Write-Host "Key Vault Name: $($keyVault.VaultName)"
 ## Generate SSH keys
 $KeysPath = "D:\a\1\s\.ssh"
 
-if(!(Test-Path $sshPath)) {
-    New-Item -ItemType Directory -Force -Path $sshPath > $null
+if(!(Test-Path $KeysPath)) {
+    New-Item -ItemType Directory -Force -Path $KeysPath > $null
 }
 
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa"
@@ -104,3 +104,5 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privateke
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+
+Write-Host $($env:System_DefaultWorkingDirectory)

@@ -67,7 +67,12 @@ $path = Get-ChildItem -Path $currentPath $fileName -Recurse -ErrorAction Silentl
 Write-Host "The solution path is: $path"
 
 $acrFile = "./tools/e2etesting/NestedEdge/ACR.env"
-$arcEnvOriginal =  Get-Content $acrFile
+$arcEnvOriginal =  Get-Content $acrFile -Raw 
+
+Write-Host
+Write-Host $arcEnvOriginal
+Write-Host
+
 $acrEnv = $arcEnvOriginal
 $acrEnv = $acrEnv -replace 'YOUR_ACR_ADDRESS', ($creds.Username + ".azurecr.io")
 $acrEnv = $acrEnv -replace 'YOUR_ACR_USERNAME', $creds.Username

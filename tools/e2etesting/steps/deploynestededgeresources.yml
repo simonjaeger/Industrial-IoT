@@ -5,7 +5,7 @@ steps:
     path: $(BasePath)
 
 - task: AzurePowerShell@5
-  displayName: "Deploy ACR"
+  displayName: "Prepare for nested edge deployment"
   timeoutInMinutes: 30
   inputs:
     azureSubscription: '$(AzureSubscription)'
@@ -15,29 +15,8 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
-# - task: AzureCLI@2
-#   displayName: 'Set IoT Hub name'
-#   inputs:
-#     azureSubscription: '$(AzureSubscription)'
-#     azurePowerShellVersion: 'latestVersion'
-#     scriptLocation: 'InlineScript'
-#     scriptType: 'ps'
-#     addSpnToEnvironment: true
-#     inlineScript: |
-#       Write-Host $(BasePath)
-#       Write-Host $(ResourceGroupName)
-#       Write-Host ${env:iothub}   
-#       $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
-#       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
-#       Write-Host ${env:iothub}
-
-# - task: Bash@3
-#   inputs:
-#     workingDirectory: '$(BasePath)\NestedEdge'
-#     filePath: '$(BasePath)\NestedEdge\install.sh'
-#     arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:\a\1\s\.ssh"'
-
 - task: AzureCLI@2
+  displayName: "Deploy nested edge"
   inputs:
     azureSubscription: '$(AzureSubscription)'
     scriptType: 'bash'
@@ -45,6 +24,17 @@ steps:
     scriptPath: '$(BasePath)\NestedEdge\install.sh'
     arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="$(System.DefaultWorkingDirectory)\.ssh'
     workingDirectory: '$(BasePath)\NestedEdge'
+
+- task: AzurePowerShell@5
+  displayName: "Post nested edge deployment"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\PostNestedEdgeDeployment.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

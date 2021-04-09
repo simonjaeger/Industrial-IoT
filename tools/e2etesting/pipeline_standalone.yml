@@ -34,7 +34,7 @@ stages:
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     pool:
-      name: 'ubuntu-latest'
+      name: '$(AgentPool)'
     steps:
     - template: steps/deploynestededgeresources.yml
 

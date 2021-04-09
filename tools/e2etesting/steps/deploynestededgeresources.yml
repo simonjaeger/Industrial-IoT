@@ -4,10 +4,29 @@ steps:
     artifact: 'testartifacts'
     path: $(BasePath)
 
-- task: Bash@3
+- task: AzureCLI@2
+  displayName: 'Set IoT Hub name'
   inputs:
-    targetType: 'inline'
-    script: echo "Test"
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host $(BasePath)
+      Write-Host $(ResourceGroupName)
+      Write-Host ${env:iothub}   
+      $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
+      Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
+      Write-Host ${env:iothub}
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'filePath' 
+    filePath: '$(BasePath)\NestedEdge\install.sh'
+    arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
+    #pwsh: false 
+    #workingDirectory: '$(BasePath)\NestedEdge'
 
 - task: AzurePowerShell@5
   displayName: "Deploy ACR"
@@ -20,27 +39,6 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
-- task: AzureCLI@2
-  displayName: 'Set IoT Hub name'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'pscore'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host $(BasePath)
-      Write-Host $(ResourceGroupName)
-      Write-Host ${env:iothub}   
-      $iotHubName = (Get-AzIotHub -ResourceGroupName $(ResourceGroupName)).Name
-      Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
-      Write-Host ${env:iothub}
-
-- task: Bash@3
-  inputs:
-    workingDirectory: '$(BasePath)\NestedEdge'
-    filePath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: '-rg $(ResourceGroupName) -hubrg $(ResourceGroupName) -hubname $(iothub)'
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

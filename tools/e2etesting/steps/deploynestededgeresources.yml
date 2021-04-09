@@ -22,7 +22,7 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'scriptPath'
     scriptPath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="$(System.DefaultWorkingDirectory)\.ssh'
+    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:/a/1/s/.ssh'
     workingDirectory: '$(BasePath)\NestedEdge'
 
 - task: AzurePowerShell@5

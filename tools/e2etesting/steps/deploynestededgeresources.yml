@@ -31,11 +31,20 @@ steps:
 #       Write-Host "##vso[task.setvariable variable=iothub]$iotHubName"
 #       Write-Host ${env:iothub}
 
-- task: Bash@3
+# - task: Bash@3
+#   inputs:
+#     workingDirectory: '$(BasePath)\NestedEdge'
+#     filePath: '$(BasePath)\NestedEdge\install.sh'
+#     arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:\a\1\s\.ssh"'
+
+- task: AzureCLI@2
   inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'bash'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(BasePath)\NestedEdge\install.sh'
+    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="$(System.DefaultWorkingDirectory)\.ssh'
     workingDirectory: '$(BasePath)\NestedEdge'
-    filePath: '$(BasePath)\NestedEdge\install.sh'
-    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:\a\1\s\.ssh"'
 
 - task: AzurePowerShell@5
   displayName: "Deploy containers with simulated PLCs"

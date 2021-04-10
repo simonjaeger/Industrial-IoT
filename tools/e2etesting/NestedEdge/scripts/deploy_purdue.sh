@@ -175,7 +175,7 @@ jbSshPublicKey=$(echo ${runCommandOutput} | grep -o -P '(?<=\[stdout\]\ ).*(?=\ 
 echo "jbSshPublicKey : ${jbSshPublicKey}"
 echo "scriptFolder ${scriptFolder}"
 #rm ${scriptFolder}/.jbSshPublicKey 2> /dev/null
-echo "$jbSshPublicKey" >> "D:/a/1/s/.ssh/jbSshPublicKey"
+echo "$jbSshPublicKey" >> "/d/a/1/s/.ssh/jbSshPublicKey"
 
 echo "Jump box created. Key values:"
 echo ""

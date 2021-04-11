@@ -175,7 +175,7 @@ echo "runCommandOutput: ${runCommandOutput}"
 echo "###"
 
 regex=$'(ssh-rsa[^\n]*)'
-if [[ $str =~ $regex ]]; then
+if [[ $runCommandOutput =~ $regex ]]; then
   jbSshPublicKey="${BASH_REMATCH[1]}"
   echo "Match ${jbSshPublicKey}"
 else

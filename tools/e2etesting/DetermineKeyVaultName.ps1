@@ -49,6 +49,6 @@ $keyVaultVariableName = "KeyVaultName"
 #     Write-Host "##vso[task.complete result=Failed]Could not locate KeyVault with Tag 'application = $($application)' in Resource Group '$($ResourceGroupName)'."
 # }
 
-$applicationKeyVault = "e2etestingkeyVault" + $resourceGroup.Tags["TestingResourcesSuffix"]
+$applicationKeyVault = "e2etestingkeyVault" + $ResourceGroupName.Tags["TestingResourcesSuffix"]
 Write-Host "Setting variable '$($keyVaultVariableName)' to '$($applicationKeyVault)'."
 Write-Host "##vso[task.setvariable variable=$($keyVaultVariableName)]$($applicationKeyVault)"

@@ -172,7 +172,15 @@ jumpboxSSH="ssh $jumpBoxUser@$jumpBoxFullyQualifiedName"
 runCommandOutput=$(az vm run-command invoke -g ${jumpboxResourceGroupName} -n jumpbox --command-id RunShellScript --scripts "sudo -u jbadmin ssh-keygen -m PEM -t rsa -b 4096 -f /home/jbadmin/.ssh/id_rsa -q -N "\"\"" && sudo -u jbadmin cat /home/jbadmin/.ssh/id_rsa.pub" --query "value[].message" -o tsv)
 
 echo "runCommandOutput: ${runCommandOutput}"
-jbSshPublicKey=$(echo ${runCommandOutput} | LC_ALL=en_US.utf8 grep -o -P '(?<=\[stdout\]\ ).*(?=\ \[stderr\])')
+echo "###"
+
+regex=$'(ssh-rsa[^\n]*)'
+if [[ $str =~ $regex ]]; then
+  jbSshPublicKey="${BASH_REMATCH[1]}"
+  echo "Match ${jbSshPublicKey}"
+else
+  echo "no match found"
+fi
 
 echo "jbSshPublicKey : ${jbSshPublicKey}"
 echo "scriptFolder ${scriptFolder}"

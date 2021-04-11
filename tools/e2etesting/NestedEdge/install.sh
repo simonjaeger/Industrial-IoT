@@ -151,6 +151,8 @@ echo "${sshPublicKeyPath}"
 echo "${jumpBoxSshPublicKeyPath}"
 ssh=$(eval cat $sshPublicKeyPath)
 echo "${ssh}"
+ssh=$(eval cat $jumpBoxSshPublicKeyPath)
+echo "${ssh}"
 echo ""
 
 ./scripts/deploy_iiotassets.sh -s=$subscription -l=$location -rg=$resourceGroupPrefix -vmSize=$vmSize -sshPublicKeyPath=$jumpBoxSshPublicKeyPath -c=$absoluteConfigFilePath

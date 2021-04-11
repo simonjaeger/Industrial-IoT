@@ -138,6 +138,8 @@ echo ""
 echo "Using configuration file located at: ${configFilePath}"
 echo ""
 
+az extension add --name azure-iot
+
 absoluteConfigFilePath=$(readlink -f "${configFilePath}")
 
 ./scripts/deploy_purdue.sh -s=$subscription -l=$location -rg=$resourceGroupPrefix -vmSize=$vmSize -sshPublicKeyPath=$sshPublicKeyPath

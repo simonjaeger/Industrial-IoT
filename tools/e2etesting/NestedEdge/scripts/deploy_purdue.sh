@@ -170,6 +170,8 @@ jumpboxSSH="ssh $jumpBoxUser@$jumpBoxFullyQualifiedName"
 
 # Creating SSH key pair to connect from the jump box to VMs within the Purdue network
 runCommandOutput=$(az vm run-command invoke -g ${jumpboxResourceGroupName} -n jumpbox --command-id RunShellScript --scripts "sudo -u jbadmin ssh-keygen -m PEM -t rsa -b 4096 -f /home/jbadmin/.ssh/id_rsa -q -N "\"\"" && sudo -u jbadmin cat /home/jbadmin/.ssh/id_rsa.pub" --query "value[].message" -o tsv)
+
+echo "runCommandOutput: ${runCommandOutput}"
 jbSshPublicKey=$(echo ${runCommandOutput} | LC_ALL=en_US.utf8 grep -o -P '(?<=\[stdout\]\ ).*(?=\ \[stderr\])')
 
 echo "jbSshPublicKey : ${jbSshPublicKey}"

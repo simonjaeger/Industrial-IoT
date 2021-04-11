@@ -89,6 +89,9 @@ echo "==========================================================="
 echo "==   Creating IoT Edge devices in IoT Hub       =="
 echo "==========================================================="
 
+az config set extension.use_dynamic_install=yes_without_prompt
+az extension add --name azure-iot
+
 for (( i=0; i<${#iotEdgeDevices[@]}; i++))
 do
     echo "${iotEdgeDevices[i]}..."

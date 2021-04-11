@@ -138,6 +138,7 @@ echo ""
 echo "Using configuration file located at: ${configFilePath}"
 echo ""
 
+az config set extension.use_dynamic_install=yes_without_prompt
 az extension add --name azure-iot
 
 absoluteConfigFilePath=$(readlink -f "${configFilePath}")

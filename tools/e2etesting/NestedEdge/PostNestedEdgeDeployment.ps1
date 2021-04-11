@@ -40,10 +40,18 @@ if ($iotHub.Count -ne 1) {
 
 Write-Host "IoT Hub Name: $($iotHub.Name)"
 
+$deviceName = "L3-1-edge"
+Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -EdgeEnabled
+
+$deviceL4 = "L4-1-edge"
+Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceL4 -EdgeEnabled
+
+$deviceL5 = "L5-1-edge"
+Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceL5 -EdgeEnabled
+
 $keyVault = "e2etestingkeyVault" + $testSuffix
 Write-Host "Key Vault Name: $($keyVault)"
 
-$deviceName = "L3-1-edge"
 $edgeIdentity = Get-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -ErrorAction SilentlyContinue
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."

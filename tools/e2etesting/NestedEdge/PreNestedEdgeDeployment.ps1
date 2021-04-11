@@ -68,25 +68,11 @@ Write-Host "The solution path is: $path"
 
 $acrFile = "./tools/e2etesting/NestedEdge/ACR.env"
 $arcEnvOriginal =  Get-Content $acrFile -Raw 
-
-Write-Host
-Write-Host $arcEnvOriginal
-Write-Host
-
 $acrEnv = $arcEnvOriginal
 $acrEnv = $acrEnv -replace 'YOUR_ACR_ADDRESS', ($creds.Username + ".azurecr.io")
 $acrEnv = $acrEnv -replace 'YOUR_ACR_USERNAME', $creds.Username
 $acrEnv = $acrEnv -replace 'YOUR_ACR_PASSWORD', $creds.Password
 $acrEnv | Out-File $acrFile
-
-Write-Host
-Write-Host $acrEnv
-Write-Host
-
-## Check if KeyVault exists
-$keyVault = "e2etestingkeyVault" + $testSuffix
-
-Write-Host "Key Vault Name: $($keyVault)"
 
 ## Generate SSH keys
 $KeysPath = $env:System_DefaultWorkingDirectory + "\.ssh"
@@ -101,6 +87,10 @@ $keypassphrase = '""'
 Write-Output "y" | ssh-keygen -q -m PEM -b 4096 -t rsa -f $privateKeyFilePath -N $keypassphrase
 $sshPrivateKey = Get-Content $privateKeyFilePath -Raw 
 $sshPublicKey = Get-Content $publicKeyFilePath -Raw
+
+# Store ssh keys
+$keyVault = "e2etestingkeyVault" + $testSuffix
+Write-Host "Key Vault Name: $($keyVault)"
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
 Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null

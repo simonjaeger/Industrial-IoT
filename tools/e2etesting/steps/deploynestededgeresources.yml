@@ -16,6 +16,14 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
 
 - task: AzureCLI@2
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az extension add --name azure-iot --yes --debug
+
+- task: AzureCLI@2
   displayName: "Deploy nested edge"
   inputs:
     azureSubscription: '$(AzureSubscription)'

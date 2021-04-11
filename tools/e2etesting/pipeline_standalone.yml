@@ -32,7 +32,7 @@ stages:
 
   - job: deploytestresources
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'vs2017-win2016'
     condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'

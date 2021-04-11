@@ -10,12 +10,12 @@ if (!$ResourceGroupName) {
 
 $keyVaultVariableName = "KeyVaultName"
 
-# Write-Host "Looking for KeyVault in Resource group '$($ResourceGroupName)'"
-# $resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
+Write-Host "Looking for KeyVault in Resource group '$($ResourceGroupName)'"
+$resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
 
-# if (!$resourceGroup) {
-#     Write-Host "##vso[task.complete result=Failed]Could not get Resource Group with name '$($ResourceGroupName)', exiting...'"
-# }
+if (!$resourceGroup) {
+    Write-Host "##vso[task.complete result=Failed]Could not get Resource Group with name '$($ResourceGroupName)', exiting...'"
+}
 
 # $keyVaults = Get-AzKeyVault -ResourceGroupName $resourceGroup.ResourceGroupName
 
@@ -49,6 +49,6 @@ $keyVaultVariableName = "KeyVaultName"
 #     Write-Host "##vso[task.complete result=Failed]Could not locate KeyVault with Tag 'application = $($application)' in Resource Group '$($ResourceGroupName)'."
 # }
 
-$applicationKeyVault = "e2etestingkeyVault" + $ResourceGroupName.Tags["TestingResourcesSuffix"]
+$applicationKeyVault = "e2etestingkeyVault" + $resourceGroup.Tags["TestingResourcesSuffix"]
 Write-Host "Setting variable '$($keyVaultVariableName)' to '$($applicationKeyVault)'."
 Write-Host "##vso[task.setvariable variable=$($keyVaultVariableName)]$($applicationKeyVault)"

@@ -49,7 +49,7 @@ Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Nam
 $deviceL5 = "L5-1-edge"
 Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceL5 -EdgeEnabled
 
-$keyVault = "e2etestingkeyVault" + $testSuffix
+$keyVault = "e2etestingkeyVault" + $resourceGroup.Tags["TestingResourcesSuffix"]
 Write-Host "Key Vault Name: $($keyVault)"
 
 $edgeIdentity = Get-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -ErrorAction SilentlyContinue

@@ -120,6 +120,8 @@ echo "==========================================================="
 echo "Getting devices internal IP addresses from Azure..."
 iotedgeVmIpAddressesQueryResults=($(az vm list-ip-addresses --ids $(az vm list -g $iotEdgeVMsResourceGroup --query "[].id" -o tsv) --query '[].[virtualMachine.name, virtualMachine.network.privateIpAddresses[0]]' -o tsv))
 
+Write-Host "${iotedgeVmIpAddressesQueryResults}"
+
 iotEdgeDevicesIpAddresses=()
 iotEdgeParentDevicesIpAddresses=()
 

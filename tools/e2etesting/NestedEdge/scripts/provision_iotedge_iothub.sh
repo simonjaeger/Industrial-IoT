@@ -90,14 +90,14 @@ echo "==   Creating IoT Edge devices in IoT Hub       =="
 echo "==========================================================="
 
 
-# for (( i=0; i<${#iotEdgeDevices[@]}; i++))
-# do
-#     echo "${iotEdgeDevices[i]}..."
-#     if [[ ${iotEdgeParentDevices[i]} == "IoTHub" ]]; then
-#         az iot hub device-identity create -n $iotHubName -d ${iotEdgeDevices[i]} --ee --output none
-#     else
-#         az iot hub device-identity create -n $iotHubName -d ${iotEdgeDevices[i]} --ee --pd ${iotEdgeParentDevices[i]} --output none
-#     fi
-# done
+for (( i=0; i<${#iotEdgeDevices[@]}; i++))
+do
+    echo "${iotEdgeDevices[i]}..."
+    if [[ ${iotEdgeParentDevices[i]} == "IoTHub" ]]; then
+        az iot hub device-identity create -n $iotHubName -d ${iotEdgeDevices[i]} --ee --output none
+    else
+        az iot hub device-identity create -n $iotHubName -d ${iotEdgeDevices[i]} --ee --pd ${iotEdgeParentDevices[i]} --output none
+    fi
+done
 echo "...done"
 echo ""

@@ -4,6 +4,14 @@ steps:
     artifact: 'testartifacts'
     path: $(BasePath)
 
+    steps:
+
+- task: CmdLine@2
+  displayName: 'Upgrade azure-cli'
+  inputs:
+    script: |
+      pip install azure-cli --upgrade
+      
 - task: AzurePowerShell@5
   displayName: "Prepare for nested edge deployment"
   timeoutInMinutes: 30

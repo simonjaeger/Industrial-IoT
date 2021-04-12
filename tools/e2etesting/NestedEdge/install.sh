@@ -99,6 +99,8 @@ while :; do
     shift
 done
 
+az extension add --name azure-iot --yes
+
 # Derived default settings
 networkResourceGroupName="${resourceGroupPrefix}-RG-network"
 iotedgeResourceGroupName="${resourceGroupPrefix}-RG-iotedge"
